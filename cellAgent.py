@@ -7,6 +7,9 @@ from mesa import Agent
 Module that describe a cell in Conway's game of life
 """
 
+DEAD  = 0
+ALIVE = 1
+
 class CellAgent(Agent):
     """
     Class representating the cell Agent using the mesa agent based model framework
@@ -21,6 +24,14 @@ class CellAgent(Agent):
 
         self.futur_state    = state
         self.current_state  = state
+
+
+    @property
+    def is_alive(self):
+        """
+        Return True if the cell is alive, false if dead
+        """
+        return self.current_state == 1
 
 
     def step(self):
@@ -40,33 +51,27 @@ class CellAgent(Agent):
         been ccomputed
         """
         
+        # We count how many neighbours are alive
         nb_neighbours_alive = 0
-
-        for neighbour in self.model.grid.iter_neighbors(self.pos, moore=True,
-                include_center=False):
-            if neighbour.current_state == 1:
-                nb_neighbours_alive += 1
+        nb_neighbours_alive = sum(neighbor.current_state for neighbor in self.model.grid.iter_neighbors(self.pos, moore=True, include_center=False))
 
         # Case 1, 2 and 3: cell is alive
-        if self.current_state == 1:
+        if self.is_alive is True:
             # Case 1 and 2: cell has less than 2 or more than 3 neighbours alive
             if (nb_neighbours_alive < 2) or (nb_neighbours_alive > 3):
-                self.futur_state = 0
+                self.futur_state = DEAD
             # Case 3 : cell has 2 or 3 neighbours alive
             else:
-                self.futur_state = 1
+                self.futur_state = ALIVE
 
         # Case 4 and 5: cell is dead
-        elif self.current_state == 0:
+        elif self.is_alive is False:
             # Case 4: cell has 3 neighbours alive
             if nb_neighbours_alive == 3:
-                self.futur_state = 1
+                self.futur_state = ALIVE
             # Case 5: cell has less or more than 3 neighbours alive       
             else:
-                self.futur_state = 0
-        
-        print("Agent {} [coordinates={} ; State={} ; FuturState={}]".format(self.unique_id,
-            self.pos, self.current_state, self.futur_state))
+                self.futur_state = DEAD
 
 
     def advance(self):
@@ -75,5 +80,4 @@ class CellAgent(Agent):
         """
         self.current_state = self.futur_state
         self.futur_state = None
-
 

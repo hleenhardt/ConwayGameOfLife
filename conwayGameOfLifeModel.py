@@ -5,7 +5,7 @@ from mesa import Model
 from mesa.time import SimultaneousActivation
 from mesa.space import SingleGrid
 from cellAgent import CellAgent
-import random
+from random import choices
 
 """
 Module describing the model of the game of life
@@ -22,7 +22,7 @@ class ConwayGameOfLifeModel(Model):
     
     """
 
-    def __init__(self, grid_height, grid_width):
+    def __init__(self, grid_height, grid_width, percentage_of_cell_alive):
         """
         Constructor
         """
@@ -31,10 +31,16 @@ class ConwayGameOfLifeModel(Model):
         self.scheduler       = SimultaneousActivation(self)
         self.number_of_agent = grid_width * grid_height
 
+        # Creation of all agent
         for i in range(self.number_of_agent):
 
             # Randomly chooses the initial state of the agent (0 is alive and 1 is dead)
-            state = random.randint(0,1)
+            # We use choices from the random module because it allows us to specify a distribution
+            # (ie. a list of probability for each state). Choices will return a list with ne element
+            # which is our state
+            probability_alive = percentage_of_cell_alive / 100
+            probability_dead  = 1 - probability_alive
+            state = choices([0,1], [probability_dead, probability_alive])[0]
             
             # Creating the agent and adding it to the scheduler
             agent = CellAgent(i, state, self)
@@ -43,6 +49,9 @@ class ConwayGameOfLifeModel(Model):
             # Adding the new agent to the grid
             agent_coordinates = self.grid.find_empty()
             self.grid.place_agent(agent, agent_coordinates)
+
+        # Define if the simulation is running or not
+        self.running = True
 
 
     def step(self):
